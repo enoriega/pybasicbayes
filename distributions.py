@@ -11,6 +11,9 @@ import abc
 import copy
 from warnings import warn
 
+# Added by Enrique Noriega
+from scipy.stats import norm
+
 from abstractions import Distribution, BayesianDistribution, \
         GibbsSampling, MeanField, MeanFieldSVI, Collapsed, MaxLikelihood, MAP, Tempering
 from util.stats import sample_niw, sample_mniw, sample_invwishart, invwishart_entropy,\
@@ -839,7 +842,7 @@ class GaussianFixedMean(_GaussianBase, GibbsSampling, MaxLikelihood):
 
 class GaussianFixedCov(_GaussianBase, GibbsSampling, MaxLikelihood):
     # See Gelman's Bayesian Data Analysis notation around Eq. 3.18, p. 85 in 2nd
-    # Edition. We replaced \Lambda_0 with sigma_0 since it is a prior 
+    # Edition. We replaced \Lambda_0 with sigma_0 since it is a prior
     # *covariance* matrix rather than a precision matrix. This is also more
     # consistent with the notation for other Gaussians in PyBasicBayes.
     def __init__(self,mu=None,sigma=None,mu_0=None,sigma_0=None):
@@ -3431,3 +3434,54 @@ class GammaCompoundDirichlet(CRP):
                         / (np.arange(n)+self.concentration*self.K*self.weighted_cols[j])).sum()
             return counts.sum(1), m
 
+
+class Probit(Distribution, GibbsSampling):
+    ''' Probit model for the UA Context model of the REACH team
+
+        The cumulative Gaussian distribution has zero mean and identity covariance matrix
+
+        Author: Enrique Noriega
+        Email: enoriega@email.arizona.edu
+    '''
+
+    def __init__(self, W, l):
+        ''' W is the weight matrix and l is the state vector
+
+            l is a binary vector and W a real matrix
+        '''
+
+        self.W = np.matrix(W)
+        self.l = np.matrix(l)
+
+        # Enforce l to be a column vector
+        if l.shape[1] > 1:
+            l = l.T
+
+        assert W.shape[1] == l.shape[0], "The weight matrix and the state vector should be equivalent"
+        assert ((l <= 1)) & (l >= 0)).all(), "l should be a binary vector"
+
+        # Compute the weights vector
+        self.w = W*l #These should be numpy's matrix objects so this works
+
+
+    def rvs(self, size=[]):
+        ''' Generates a random variate (sample)
+
+            
+        '''
+
+        pass
+
+    def log_likelihood(self, x):
+        ''' Computes the log likelihood according to the following formula:
+
+        p(\mathbf{y} | \mathbf{w}) = \log \left[ \prod_{k} \Phi(w_k)^{y_k} (1 - \Phi(w_k))^{1-y_k} \right]
+
+        where \mathbf{w} is the product \mathbf{W} \times \mathbf{l}
+        '''
+
+        # Now compute the joint log probability
+        if x.shape[1] > 1:
+            x = x.T
+
+        return np.log(norm.cdf(self.w[x == 1])).sum() + np.log(np.ones([1, x.shape[0] - x.sum()]) - norm.cdf(self.w[x == 0])).sum()
