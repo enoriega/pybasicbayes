@@ -3496,3 +3496,7 @@ class Probit(Distribution, GibbsSampling):
             x = x.T
 
         return np.log(norm.cdf(self.w[x == 1])).sum() + np.log(np.ones([1, x.shape[0] - x.sum()]) - norm.cdf(self.w[x == 0])).sum()
+
+    # TODO: Implement this to actually do something
+    def resample(self,data=[]):
+        pass
