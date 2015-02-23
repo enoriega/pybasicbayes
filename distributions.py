@@ -3435,7 +3435,7 @@ class GammaCompoundDirichlet(CRP):
             return counts.sum(1), m
 
 
-class Probit(Distribution, GibbsSampling):
+class Probit(GibbsSampling, Distribution):
     ''' Probit model for the UA Context model of the REACH team
 
         The cumulative Gaussian distribution has zero mean and identity covariance matrix
@@ -3458,7 +3458,7 @@ class Probit(Distribution, GibbsSampling):
             l = l.T
 
         assert W.shape[1] == l.shape[0], "The weight matrix and the state vector should be equivalent"
-        assert ((l <= 1)) & (l >= 0)).all(), "l should be a binary vector"
+        assert ((l <= 1) & (l >= 0)).all(), "l should be a binary vector"
 
         # Compute the weights vector
         self.w = W*l #These should be numpy's matrix objects so this works
@@ -3475,7 +3475,7 @@ class Probit(Distribution, GibbsSampling):
 
         variate = np.matrix(np.zeros((size, self.w.shape[0])))
 
-        for j in xrange(self.w.shape[1]):
+        for j in xrange(self.w.shape[0]):
             variate[:, j] = stats.bernoulli.rvs(self.w[j], size=(size, 1))
 
         return variate
