@@ -3467,7 +3467,7 @@ class Probit(GibbsSampling, Distribution):
     @np.vectorize
     def _threshold(s, p):
         ''' Internal method to check wether an element is above a threshold or not '''
-        return 1. if s>= p else 0.
+        return 0. if s>= p else 1.
 
     def rvs(self, size=1):
         ''' Generates a random variate (sample)
