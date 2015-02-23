@@ -3460,9 +3460,14 @@ class Probit(GibbsSampling, Distribution):
         assert W.shape[1] == l.shape[0], "The weight matrix and the state vector should be equivalent"
         assert ((l <= 1) & (l >= 0)).all(), "l should be a binary vector"
 
+        # TODO: I think this computation may be wrong. Double check with the team.
         # Compute the weights vector
         self.w = W*l #These should be numpy's matrix objects so this works
 
+    @np.vectorize
+    def _threshold(s, p):
+        ''' Internal method to check wether an element is above a threshold or not '''
+        return 1. if s>= p else 0.
 
     def rvs(self, size=1):
         ''' Generates a random variate (sample)
@@ -3476,7 +3481,7 @@ class Probit(GibbsSampling, Distribution):
         variate = np.matrix(np.zeros((size, self.w.shape[0])))
 
         for j in xrange(self.w.shape[0]):
-            variate[:, j] = stats.bernoulli.rvs(self.w[j], size=(size, 1))
+            variate[:, j] = self._threshold(stats.norm.rvs(size=(size, 1)), self.w[j])
 
         return variate
 
