@@ -3464,13 +3464,24 @@ class Probit(Distribution, GibbsSampling):
         self.w = W*l #These should be numpy's matrix objects so this works
 
 
-    def rvs(self, size=[]):
+    def rvs(self, size=1):
         ''' Generates a random variate (sample)
 
-            
+            It samples from a bernoulli with parameters as self.w
         '''
 
-        pass
+        if type(size) in (list, tuple):
+            size = size[0] if len(size) > 0 else 1
+
+        variate = np.matrix(np.zeros((size, self.w.shape[0])))
+
+        for j in xrange(self.w.shape[1]):
+            variate[:, j] = stats.bernoulli.rvs(self.w[j], size=(size, 1))
+
+        return variate
+
+
+
 
     def log_likelihood(self, x):
         ''' Computes the log likelihood according to the following formula:
