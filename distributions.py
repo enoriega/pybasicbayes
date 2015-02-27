@@ -3487,7 +3487,7 @@ class Probit(GibbsSampling, Distribution):
 
 
 
-
+    @np.vectorize
     def log_likelihood(self, x):
         ''' Computes the log likelihood according to the following formula:
 
